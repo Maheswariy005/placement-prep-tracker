@@ -1,0 +1,79 @@
+:root {
+  --bg: #0f1419;
+  --surface: #182029;
+  --surface-2: #1f2a35;
+  --text: #e7eef5;
+  --muted: #93a4b5;
+  --line: #2a3948;
+  --accent: #3dd6c6;
+  --accent-2: #2bb8aa;
+  --danger: #f07178;
+  --easy: #7ee787;
+  --medium: #e3b341;
+  --hard: #ff7b72;
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  --sans: 'Segoe UI', system-ui, sans-serif;
+  color-scheme: dark;
+  font-family: var(--sans);
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 0.5rem;
+  font-weight: 650;
+}
+
+p {
+  margin: 0 0 0.75rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+label {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
