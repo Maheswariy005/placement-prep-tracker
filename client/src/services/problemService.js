@@ -1,102 +1,64 @@
-import { createId, readStore, todayIsoDate, writeStore } from './storage.js';
+import { getToken } from "./authService.js";
 
-const KEY = 'ppt_problems';
+const API_URL = "http://localhost:5000/api/problems";
 
-const seed = [
-  {
-    id: 'p1',
-    title: 'Two Sum',
-    platform: 'LeetCode',
-    topic: 'Arrays',
-    difficulty: 'easy',
-    status: 'solved',
-    notes: 'Hash map in one pass.',
-    nextReviewDate: todayIsoDate(),
-  },
-  {
-    id: 'p2',
-    title: 'Longest Substring Without Repeating Characters',
-    platform: 'LeetCode',
-    topic: 'Sliding Window',
-    difficulty: 'medium',
-    status: 'revisit',
-    notes: 'Need to tighten the window logic.',
-    nextReviewDate: todayIsoDate(),
-  },
-  {
-    id: 'p3',
-    title: 'Merge K Sorted Lists',
-    platform: 'LeetCode',
-    topic: 'Heaps',
-    difficulty: 'hard',
-    status: 'todo',
-    notes: '',
-    nextReviewDate: todayIsoDate(),
-  },
-  {
-    id: 'p4',
-    title: 'Binary Tree Level Order Traversal',
-    platform: 'LeetCode',
-    topic: 'Trees',
-    difficulty: 'medium',
-    status: 'solved',
-    notes: 'BFS with a queue.',
-    nextReviewDate: '2026-12-01',
-  },
-  {
-    id: 'p5',
-    title: 'Detect Cycle in Directed Graph',
-    platform: 'GFG',
-    topic: 'Graphs',
-    difficulty: 'medium',
-    status: 'revisit',
-    notes: 'DFS colors vs Kahn.',
-    nextReviewDate: todayIsoDate(),
-  },
-];
+async function request(endpoint = "", options = {}) {
+  const token = getToken();
 
-function all() {
-  return readStore(KEY, seed);
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Problem request failed");
+  }
+
+  return data;
 }
 
 export const problemService = {
-  getAll() {
-    return all();
+  async getAll() {
+    const data = await request();
+    return data.problems;
   },
 
-  add(payload) {
-    const problems = all();
-    const problem = {
-      id: createId(),
-      title: payload.title.trim(),
-      platform: payload.platform.trim() || 'LeetCode',
-      topic: payload.topic.trim(),
-      difficulty: payload.difficulty,
-      status: payload.status,
-      notes: payload.notes.trim(),
-      nextReviewDate: payload.nextReviewDate || todayIsoDate(),
-    };
-    writeStore(KEY, [problem, ...problems]);
-    return problem;
+  async add(payload) {
+    const data = await request("", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    return data.problem;
   },
 
-  update(id, updates) {
-    const problems = all().map((problem) =>
-      problem.id === id ? { ...problem, ...updates } : problem,
+  async update(id, updates) {
+    const data = await request(`/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(updates),
+    });
+
+    return data.problem;
+  },
+
+  async remove(id) {
+    return request(`/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async getDueToday() {
+    const problems = await this.getAll();
+    const today = new Date().toISOString().slice(0, 10);
+
+    return problems.filter(
+      (problem) => problem.nextReviewDate <= today
     );
-    writeStore(KEY, problems);
-    return problems.find((problem) => problem.id === id);
-  },
-
-  remove(id) {
-    writeStore(
-      KEY,
-      all().filter((problem) => problem.id !== id),
-    );
-  },
-
-  getDueToday() {
-    const today = todayIsoDate();
-    return all().filter((problem) => problem.nextReviewDate <= today);
   },
 };

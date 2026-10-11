@@ -11,10 +11,18 @@ import Revisions from './pages/Revisions.jsx';
 import './App.css';
 
 function ProtectedRoute({ children }) {
-  const { user } = useAuth();
+  const { user, authLoading } = useAuth();
+
+  // Wait until the backend verifies the saved session.
+  if (authLoading) {
+    return <p>Checking your session...</p>;
+  }
+
+  // Redirect only after session verification is complete.
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
   return children;
 }
 
@@ -26,6 +34,7 @@ function AppRoutes() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
           <Route
             path="/"
             element={
@@ -34,6 +43,7 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/problems"
             element={
@@ -42,6 +52,7 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/revisions"
             element={
@@ -50,6 +61,7 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/companies"
             element={
@@ -58,6 +70,7 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/mocks"
             element={
@@ -66,6 +79,7 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
@@ -75,10 +89,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <AppRoutes />
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

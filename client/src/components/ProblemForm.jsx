@@ -17,15 +17,22 @@ export default function ProblemForm({ onAdd }) {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+
     if (!form.title.trim() || !form.topic.trim()) {
       setError('Title and topic are required.');
       return;
     }
-    onAdd(form);
-    setForm(empty);
+
     setError('');
+
+    try {
+      await onAdd(form);
+      setForm(empty);
+    } catch {
+      setError('Could not save the problem. Please try again.');
+    }
   }
 
   return (
