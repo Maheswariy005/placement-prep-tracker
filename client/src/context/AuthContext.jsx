@@ -1,5 +1,18 @@
-import { createContext, useContext, useMemo, useState } from 'react';
-import { getCurrentUser, loginUser, logoutUser, registerUser } from '../services/authService.js';
+
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  getCurrentUser,
+  loginUser,
+  logoutUser,
+  registerUser,
+  fetchCurrentUser,
+} from "../services/authService.js";
 
 const AuthContext = createContext(null);
 
@@ -9,16 +22,23 @@ export function AuthProvider({ children }) {
   const value = useMemo(
     () => ({
       user,
-      register(form) {
-        const next = registerUser(form);
+
+      async register(form) {
+        return await registerUser(form);
+      },
+
+      async login(form) {
+        const next = await loginUser(form);
         setUser(next);
         return next;
       },
-      login(form) {
-        const next = loginUser(form);
+
+      async refreshUser() {
+        const next = await fetchCurrentUser();
         setUser(next);
         return next;
       },
+
       logout() {
         logoutUser();
         setUser(null);
@@ -27,13 +47,19 @@ export function AuthProvider({ children }) {
     [user],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
+
   if (!context) {
-    throw new Error('useAuth must be used inside AuthProvider');
+    throw new Error("useAuth must be used inside AuthProvider");
   }
+
   return context;
 }
