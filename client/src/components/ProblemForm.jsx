@@ -7,6 +7,7 @@ const empty = {
   difficulty: 'easy',
   status: 'todo',
   notes: '',
+  nextReviewDate: new Date().toISOString().slice(0, 10),
 };
 
 export default function ProblemForm({ onAdd }) {
@@ -14,7 +15,10 @@ export default function ProblemForm({ onAdd }) {
   const [error, setError] = useState('');
 
   function update(event) {
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+    setForm((current) => ({
+      ...current,
+      [event.target.name]: event.target.value,
+    }));
   }
 
   async function handleSubmit(event) {
@@ -25,11 +29,21 @@ export default function ProblemForm({ onAdd }) {
       return;
     }
 
+    if (!form.nextReviewDate) {
+      setError('Please select a next review date.');
+      return;
+    }
+
     setError('');
 
     try {
       await onAdd(form);
-      setForm(empty);
+
+      // Reset the form and set the next review date to today.
+      setForm({
+        ...empty,
+        nextReviewDate: new Date().toISOString().slice(0, 10),
+      });
     } catch {
       setError('Could not save the problem. Please try again.');
     }
@@ -38,43 +52,92 @@ export default function ProblemForm({ onAdd }) {
   return (
     <form className="card form-grid" onSubmit={handleSubmit}>
       <h2>Add problem</h2>
+
       {error ? <p className="error">{error}</p> : null}
+
       <label>
         Title
-        <input name="title" value={form.title} onChange={update} placeholder="Two Sum" />
+        <input
+          name="title"
+          value={form.title}
+          onChange={update}
+          placeholder="Two Sum"
+          required
+        />
       </label>
+
       <div className="form-row">
         <label>
           Platform
-          <input name="platform" value={form.platform} onChange={update} />
+          <input
+            name="platform"
+            value={form.platform}
+            onChange={update}
+          />
         </label>
+
         <label>
           Topic
-          <input name="topic" value={form.topic} onChange={update} placeholder="Arrays" />
+          <input
+            name="topic"
+            value={form.topic}
+            onChange={update}
+            placeholder="Arrays"
+            required
+          />
         </label>
       </div>
+
       <div className="form-row">
         <label>
           Difficulty
-          <select name="difficulty" value={form.difficulty} onChange={update}>
+          <select
+            name="difficulty"
+            value={form.difficulty}
+            onChange={update}
+          >
             <option value="easy">Easy</option>
             <option value="medium">Medium</option>
             <option value="hard">Hard</option>
           </select>
         </label>
+
         <label>
           Status
-          <select name="status" value={form.status} onChange={update}>
+          <select
+            name="status"
+            value={form.status}
+            onChange={update}
+          >
             <option value="todo">Todo</option>
             <option value="solved">Solved</option>
             <option value="revisit">Revisit</option>
           </select>
         </label>
       </div>
+
+      <label>
+        Next Review Date
+        <input
+          type="date"
+          name="nextReviewDate"
+          value={form.nextReviewDate}
+          onChange={update}
+          min={new Date().toLocaleDateString('en-CA')}
+          required
+        />
+      </label>
+
       <label>
         Notes
-        <textarea name="notes" value={form.notes} onChange={update} rows="2" />
+        <textarea
+          name="notes"
+          value={form.notes}
+          onChange={update}
+          rows="2"
+        />
       </label>
+
       <button type="submit" className="btn btn-primary">
         Save problem
       </button>

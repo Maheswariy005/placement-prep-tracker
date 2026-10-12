@@ -54,11 +54,7 @@ export const problemService = {
   },
 
   async getDueToday() {
-    const problems = await this.getAll();
-    const today = new Date().toISOString().slice(0, 10);
-
-    return problems.filter(
-      (problem) => problem.nextReviewDate <= today
-    );
+    const data = await request("/revisions");
+    return data.problems;
   },
 };

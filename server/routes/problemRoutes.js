@@ -171,4 +171,22 @@ router.delete("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+
+// GET /api/problems/revisions
+router.get("/revisions", authMiddleware, async (req, res) => {
+  try {
+    const problems = await Problem.find({
+      user: req.userId,
+      status: "revisit",
+    }).sort({ updatedAt: -1 });
+    console.log(problems);
+    res.json({ problems });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch revision problems",
+    });
+  }
+});
+
+
 module.exports = router;

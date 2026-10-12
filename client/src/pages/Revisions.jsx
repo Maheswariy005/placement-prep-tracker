@@ -1,57 +1,108 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import EmptyState from '../components/EmptyState.jsx';
 import { problemService } from '../services/problemService.js';
-import { todayIsoDate } from '../services/storage.js';
-
-function nextDate(days) {
-  const date = new Date();
-  date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
-}
 
 export default function Revisions() {
-  const [due, setDue] = useState(() => problemService.getDueToday());
+  const [problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [updatingId, setUpdatingId] = useState(null);
 
-  function review(id, quality) {
-    const days = quality >= 4 ? 6 : quality >= 3 ? 3 : 1;
-    problemService.update(id, {
-      status: quality >= 3 ? 'solved' : 'revisit',
-      nextReviewDate: quality === 0 ? todayIsoDate() : nextDate(days),
-    });
-    setDue(problemService.getDueToday());
+  const loadRevisions = useCallback(async () => {
+    try {
+      setError('');
+      const data = await problemService.getDueToday();
+      setProblems(data);
+    } catch (err) {
+      setError(err.message || 'Failed to load revision problems.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRevisions();
+  }, [loadRevisions]);
+
+  async function updateStatus(problem, status) {
+    try {
+      setUpdatingId(problem._id);
+      setError('');
+
+      await problemService.update(problem._id, { status });
+
+      // Remove it from this page if it is no longer marked for revision.
+      if (status !== 'revisit') {
+        setProblems((current) =>
+          current.filter((item) => item._id !== problem._id)
+        );
+      } else {
+        await loadRevisions();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to update problem status.');
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  if (loading) {
+    return <main className="page"><p>Loading revision problems...</p></main>;
   }
 
   return (
-    <section>
-      <h1>Today&apos;s revision</h1>
-      <p className="muted">Rate 0–5. This is a simplified SM-2 preview, not the final algorithm.</p>
-      {!due.length ? (
-        <EmptyState title="Nothing due" message="You are caught up for today." />
+    <main className="page">
+      <h1>Today's revision</h1>
+      <p>Problems marked for revision appear here.</p>
+
+      {error && <p className="error">{error}</p>}
+
+      {problems.length === 0 ? (
+        <EmptyState
+          title="Nothing to revise"
+          message="You're all caught up! Mark a problem as Revisit to see it here."
+        />
       ) : (
-        <div className="stack">
-          {due.map((problem) => (
-            <article key={problem.id} className="card">
+        <div className="card-list">
+          {problems.map((problem) => (
+            <article className="card" key={problem._id}>
               <h2>{problem.title}</h2>
-              <p className="muted">
-                {problem.topic} · {problem.difficulty} · {problem.platform}
+
+              <p>
+                Difficulty: {problem.difficulty}
               </p>
-              {problem.notes ? <p>{problem.notes}</p> : null}
-              <div className="quality-row">
-                {[0, 1, 2, 3, 4, 5].map((quality) => (
-                  <button
-                    key={quality}
-                    type="button"
-                    className="btn"
-                    onClick={() => review(problem.id, quality)}
-                  >
-                    {quality}
-                  </button>
-                ))}
+
+              <p>
+                Status: {problem.status}
+              </p>
+
+              {problem.topic && <p>Topic: {problem.topic}</p>}
+
+              {problem.notes && <p>Notes: {problem.notes}</p>}
+
+              <div className="button-row">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={updatingId === problem._id}
+                  onClick={() => updateStatus(problem, 'solved')}
+                >
+                  Mark Solved
+                </button>
+
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={updatingId === problem._id}
+                  onClick={() => updateStatus(problem, 'todo')}
+                >
+                  Move to Todo
+                </button>
               </div>
             </article>
           ))}
         </div>
       )}
-    </section>
+    </main>
   );
 }
