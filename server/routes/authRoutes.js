@@ -101,7 +101,8 @@ router.post("/login",async (req,res)=>{
             user:{
                 id:user._id,
                 name:user.name,
-                email:user.email
+                email:user.email,
+                createdAt:user.createdAt
             }
         });
     }
@@ -129,7 +130,10 @@ router.get("/me", authMiddleware, async (req, res) => {
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                createdAt: user.createdAt,
+                leetcodeUsername: user.leetcodeUsername,
+                leetcodeConnectedAt: user.leetcodeConnectedAt,
             }
         });
 
@@ -138,6 +142,99 @@ router.get("/me", authMiddleware, async (req, res) => {
 
         return res.status(500).json({
             message: "Internal server error"
+        });
+    }
+});
+
+
+// POST /api/auth/leetcode/connect
+router.post("/leetcode/connect", authMiddleware, async (req, res) => {
+    try {
+        const { username } = req.body;
+
+        if (typeof username !== "string" || !username.trim()) {
+            return res.status(400).json({
+                message: "LeetCode username is required",
+            });
+        }
+
+        const leetcodeUsername = username.trim();
+
+        // Accept ordinary LeetCode username characters.
+        if (!/^[a-zA-Z0-9_-]{1,30}$/.test(leetcodeUsername)) {
+            return res.status(400).json({
+                message: "Please enter a valid LeetCode username",
+            });
+        }
+
+        const response = await fetch("https://leetcode.com/graphql/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Referer": `https://leetcode.com/u/${encodeURIComponent(leetcodeUsername)}/`,
+                "User-Agent": "Mozilla/5.0",
+            },
+            body: JSON.stringify({
+                query: `
+                    query userPublicProfile($username: String!) {
+                        matchedUser(username: $username) {
+                            username
+                        }
+                    }
+                `,
+                variables: {
+                    username: leetcodeUsername,
+                },
+            }),
+            signal: AbortSignal.timeout(10000),
+        });
+
+        if (!response.ok) {
+            return res.status(502).json({
+                message: "LeetCode is temporarily unavailable. Please try again.",
+            });
+        }
+
+        const data = await response.json();
+
+        if (data.errors || !data.data?.matchedUser?.username) {
+            return res.status(404).json({
+                message: "LeetCode profile not found or unavailable",
+            });
+        }
+
+        // Only update the currently authenticated user's account.
+        const user = await User.findByIdAndUpdate(
+            req.userId,
+            {
+                leetcodeUsername: data.data.matchedUser.username,
+                leetcodeConnectedAt: new Date(),
+            },
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User account not found",
+            });
+        }
+
+        return res.status(200).json({
+            message: "LeetCode public profile connected successfully",
+            leetcode: {
+                username: user.leetcodeUsername,
+                connectedAt: user.leetcodeConnectedAt,
+                verifiedOwnership: false,
+            },
+        });
+    } catch (error) {
+        console.error("LeetCode connection error:", error.message);
+
+        return res.status(502).json({
+            message: "Could not verify the LeetCode profile. Please try again.",
         });
     }
 });

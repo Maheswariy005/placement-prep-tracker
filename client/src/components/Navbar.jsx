@@ -7,6 +7,7 @@ const links = [
   { to: '/revisions', label: "Today's Revision" },
   { to: '/companies', label: 'Companies' },
   { to: '/mocks', label: 'Mock Interviews' },
+  { to: '/profile', label: 'Profile' },
 ];
 
 export default function Navbar() {
@@ -20,19 +21,47 @@ export default function Navbar() {
 
   return (
     <header className="nav">
-      <div className="nav-brand">PrepTracker</div>
+      <div
+        className="nav-brand"
+        onClick={() => user && navigate('/')}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') navigate('/');
+        }}
+      >
+        PrepTracker
+      </div>
+
       {user ? (
         <>
           <nav className="nav-links">
             {links.map((link) => (
-              <NavLink key={link.to} to={link.to} end={link.to === '/'}>
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === '/'}
+              >
                 {link.label}
               </NavLink>
             ))}
           </nav>
+
           <div className="nav-user">
-            <span>{user.name}</span>
-            <button type="button" className="btn btn-ghost" onClick={handleLogout}>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => navigate('/profile')}
+              title="View profile"
+            >
+              {user.name}
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={handleLogout}
+            >
               Logout
             </button>
           </div>

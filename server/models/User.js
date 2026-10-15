@@ -21,7 +21,16 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
             select: false
-        }
+        },
+        leetcodeUsername: {
+            type: String,
+            trim: true,
+            default: null,
+        },
+        leetcodeConnectedAt: {
+            type: Date,
+            default: null,
+        },
     },
     {
         timestamps: true

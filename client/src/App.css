@@ -232,3 +232,104 @@ td {
     grid-template-columns: 1fr;
   }
 }
+
+
+.profile-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #e8edff;
+  color: #3446a8;
+  font-size: 1.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.profile-header h2,
+.profile-header p,
+.leetcode-heading h2,
+.leetcode-heading p {
+  margin-top: 0;
+}
+
+.profile-header p,
+.leetcode-heading p {
+  margin-bottom: 0;
+}
+
+.profile-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.profile-details span,
+.leetcode-card label {
+  display: block;
+  font-size: 0.875rem;
+  opacity: 0.7;
+  margin-bottom: 0.4rem;
+}
+
+.profile-details p {
+  margin: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.leetcode-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.connection-status {
+  white-space: nowrap;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.leetcode-card form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.leetcode-card input {
+  width: 100%;
+}
+
+.form-hint {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .profile-details {
+    grid-template-columns: 1fr;
+  }
+
+  .leetcode-heading {
+    flex-direction: column;
+  }
+}

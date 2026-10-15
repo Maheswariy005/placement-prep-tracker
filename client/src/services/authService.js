@@ -101,6 +101,28 @@ export async function fetchCurrentUser() {
   }
 }
 
+
+export async function connectLeetCode(username) {
+  const token = getToken();
+
+  const response = await fetch(`${API_URL}/leetcode/connect`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ username }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to connect LeetCode");
+  }
+
+  return data.leetcode;
+}
+
 export function logoutUser() {
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem(TOKEN_KEY);

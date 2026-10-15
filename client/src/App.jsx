@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import Login from './pages/Login.jsx';
 import MockInterviews from './pages/MockInterviews.jsx';
 import Problems from './pages/Problems.jsx';
+import Profile from './pages/Profile.jsx';
 import Register from './pages/Register.jsx';
 import Revisions from './pages/Revisions.jsx';
 import './App.css';
@@ -13,12 +14,10 @@ import './App.css';
 function ProtectedRoute({ children }) {
   const { user, authLoading } = useAuth();
 
-  // Wait until the backend verifies the saved session.
   if (authLoading) {
     return <p>Checking your session...</p>;
   }
 
-  // Redirect only after session verification is complete.
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -30,6 +29,7 @@ function AppRoutes() {
   return (
     <div className="app-shell">
       <Navbar />
+
       <main className="page">
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -76,6 +76,15 @@ function AppRoutes() {
             element={
               <ProtectedRoute>
                 <MockInterviews />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />
