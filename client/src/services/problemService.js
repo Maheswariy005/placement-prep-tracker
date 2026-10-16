@@ -57,4 +57,12 @@ export const problemService = {
     const data = await request("/revisions");
     return data.problems;
   },
+
+  // NEW: Sync recent accepted LeetCode submissions
+  async syncLeetCode() {
+    return request("/sync-leetcode", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  },
 };

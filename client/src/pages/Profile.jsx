@@ -1,17 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { connectLeetCode } from '../services/authService.js';
+import { problemService } from '../services/problemService.js';
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
 
   const [username, setUsername] = useState(user?.leetcodeUsername || '');
-  const [connected, setConnected] = useState(
-    user?.leetcodeUsername || ''
-  );
+  const [connected, setConnected] = useState(user?.leetcodeUsername || '');
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [syncResult, setSyncResult] = useState(null);
+
+  useEffect(() => {
+    setUsername(user?.leetcodeUsername || '');
+    setConnected(user?.leetcodeUsername || '');
+  }, [user?.leetcodeUsername]);
 
   const memberSince = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-IN', {
@@ -25,6 +31,7 @@ export default function Profile() {
     event.preventDefault();
     setError('');
     setSuccess('');
+    setSyncResult(null);
 
     if (!username.trim()) {
       setError('Please enter your LeetCode username.');
@@ -38,14 +45,32 @@ export default function Profile() {
 
       setConnected(result.username);
       setUsername(result.username);
-      setSuccess('LeetCode public profile connected successfully.');
-
-      // Refresh the authenticated user's details from the backend.
       await refreshUser();
+
+      setSuccess('LeetCode public profile connected successfully.');
     } catch (err) {
       setError(err.message || 'Could not connect to LeetCode.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSync() {
+    setError('');
+    setSuccess('');
+    setSyncResult(null);
+
+    try {
+      setSyncing(true);
+
+      const result = await problemService.syncLeetCode();
+
+      setSyncResult(result);
+      setSuccess('LeetCode sync completed successfully.');
+    } catch (err) {
+      setError(err.message || 'LeetCode sync failed.');
+    } finally {
+      setSyncing(false);
     }
   }
 
@@ -107,8 +132,7 @@ export default function Profile() {
 
         {connected && (
           <p>
-            Connected username:{' '}
-            <strong>{connected}</strong>
+            Connected username: <strong>{connected}</strong>
           </p>
         )}
 
@@ -125,16 +149,13 @@ export default function Profile() {
             onChange={(event) => setUsername(event.target.value)}
             placeholder="Enter your LeetCode username"
             autoComplete="off"
-            disabled={loading}
+            disabled={loading || syncing}
           />
-
-          {error && <p className="error">{error}</p>}
-          {success && <p>{success}</p>}
 
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={loading || !username.trim()}
+            disabled={loading || syncing || !username.trim()}
           >
             {loading
               ? 'Connecting...'
@@ -142,12 +163,46 @@ export default function Profile() {
                 ? 'Update LeetCode Profile'
                 : 'Connect LeetCode'}
           </button>
-
-          <p className="form-hint">
-            This checks whether the public profile is accessible. It
-            does not verify account ownership.
-          </p>
         </form>
+
+        {connected && (
+          <div className="sync-section">
+            <h3>Sync Accepted Submissions</h3>
+            <p>
+              Import your recent accepted LeetCode problems into your
+              placement preparation tracker.
+            </p>
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSync}
+              disabled={syncing || loading}
+            >
+              {syncing ? 'Syncing...' : 'Sync Now'}
+            </button>
+
+            {syncing && (
+              <p>Please wait while we fetch your submissions.</p>
+            )}
+
+            {syncResult && (
+              <div className="sync-result">
+                <p>Problems found: {syncResult.found}</p>
+                <p>Imported: {syncResult.imported}</p>
+                <p>Skipped: {syncResult.skipped}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {error && <p className="error">{error}</p>}
+        {success && <p>{success}</p>}
+
+        <p className="form-hint">
+          This checks whether the public profile is accessible. It does
+          not verify account ownership.
+        </p>
       </section>
     </div>
   );
