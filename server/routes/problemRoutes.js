@@ -315,12 +315,28 @@ router.post("/sync-leetcode", authMiddleware, async (req, res) => {
         { titleSlug: slug }
       );
 
-      const question = questionData.question;
+    const question = questionData.question;
 
-      if (!question) {
-        skipped++;
-        continue;
-      }
+    if (!question) {
+      skipped++;
+      continue;
+    }
+
+    // Skip if the same problem already exists manually.
+    const existingManualProblem = await Problem.findOne({
+      user: req.userId,
+      source: "manual",
+      platform: { $regex: /^LeetCode$/i },
+      title: {
+        $regex: `^${(question.title || submission.title).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+        $options: "i",
+      },
+    });
+
+    if (existingManualProblem) {
+      skipped++;
+      continue;
+    }
 
       const difficulty = question.difficulty?.toLowerCase();
 
