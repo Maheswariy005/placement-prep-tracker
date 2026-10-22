@@ -31,6 +31,32 @@ const userSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        // GitHub public profile connection
+        githubUsername: {
+        type: String,
+        trim: true,
+        default: null,
+        },
+
+        githubConnectedAt: {
+        type: Date,
+        default: null,
+        },
+
+        githubLastSyncedAt: {
+        type: Date,
+        default: null,
+        },
+
+        githubProfile: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null,
+        },
+
+        githubRepositories: {
+        type: [mongoose.Schema.Types.Mixed],
+        default: [],
+        },
     },
     {
         timestamps: true

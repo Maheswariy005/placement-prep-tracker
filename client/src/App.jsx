@@ -9,6 +9,7 @@ import Problems from './pages/Problems.jsx';
 import Profile from './pages/Profile.jsx';
 import Register from './pages/Register.jsx';
 import Revisions from './pages/Revisions.jsx';
+import GitHub from "./pages/GitHub.jsx";
 import './App.css';
 
 function ProtectedRoute({ children }) {
@@ -63,10 +64,10 @@ function AppRoutes() {
           />
 
           <Route
-            path="/companies"
+            path="/github"
             element={
               <ProtectedRoute>
-                <Companies />
+                <GitHub />
               </ProtectedRoute>
             }
           />

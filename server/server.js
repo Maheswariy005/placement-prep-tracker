@@ -5,6 +5,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const problemRoutes = require("./routes/problemRoutes");
+const githubRoutes = require("./routes/githubRoutes");
 
 connectDB();
 const app = express();
@@ -15,6 +16,7 @@ app.use(cors({
 app.use(express.json());
 app.use("/api/auth",authRoutes);
 app.use("/api/problems",problemRoutes);
+app.use("/api/github", githubRoutes);
 
 const PORT = process.env.PORT || 5000;
 

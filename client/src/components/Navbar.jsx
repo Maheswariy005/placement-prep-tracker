@@ -5,7 +5,7 @@ const links = [
   { to: '/', label: 'Dashboard' },
   { to: '/problems', label: 'Problems' },
   { to: '/revisions', label: "Today's Revision" },
-  { to: '/companies', label: 'Companies' },
+  { to: '/github', label: 'GitHub' },
   { to: '/mocks', label: 'Mock Interviews' },
   { to: '/profile', label: 'Profile' },
 ];
@@ -27,7 +27,10 @@ export default function Navbar() {
         role="button"
         tabIndex={0}
         onKeyDown={(event) => {
-          if (event.key === 'Enter') navigate('/');
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            if (user) navigate('/');
+          }
         }}
       >
         PrepTracker
